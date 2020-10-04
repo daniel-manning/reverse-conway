@@ -26,26 +26,22 @@ case class Cell(location:Location, status:Status)
 case class Board(boardState:Map[Location, Status]){
   val neighbourCells = List((-1,-1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1), (1, 1))
 
-  def lookup(location: Location):Cell = {
+  def lookup(location: Location): Cell = {
     //If we can't find the cell default it to dead
     val status = boardState.getOrElse(location, Dead)
 
     Cell(location, status)
   }
 
-  def neighbourhood(location: Location): List[Cell] = {
+  def neighbourhood(location: Location): List[Cell] =
+    neighbourCells.map(neighbourhoodVector => lookup(Location(wrap(neighbourhoodVector._1 + location.x), wrap(neighbourhoodVector._2 + location.y))))
 
-    neighbourCells.map(neighbourhoodVector => lookup(Location(neighbourhoodVector._1 + location.x, neighbourhoodVector._2 + location.y)))
-
-  }
+  private def wrap(i: Int): Int =
+    if(i < 0) 25 + i
+    else i % 25
 
   def evolveBoard(): Board = {
-    //TODO: Need to create a thin layer of dead cells around all the alive ones before we evolve state
-    val whitespaceToAdd:List[Cell] = boardState.flatMap(x => neighbourhood(x._1).filter(n => !boardState.contains(n.location))).toList
-    val boardWithWhiteSpace = whitespaceToAdd.foldRight(boardState)((cell, map) => map + ((cell.location, Dead)))
-
-    //TODO: Only store alive cells in the map
-    val newBoard = boardWithWhiteSpace.foldRight(Map[Location, Status]())((x: (Location, Status), y:Map[Location, Status]) => {
+    val newBoard = boardState.foldRight(Map[Location, Status]())((x: (Location, Status), y:Map[Location, Status]) => {
       val cell = Cell(x._1, x._2)
       evolveState(cell, neighbourhood = neighbourhood(cell.location)).status match {
         case Alive => y + ((x._1, Alive))

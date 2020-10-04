@@ -20,9 +20,9 @@ object Loader extends App {
 
   val (start, stop) = Board.fromInput(topline)
 
-  val start_evaluated = stop.evolveBoard()
+  val stop_evaluated = start.evolveBoard()
 
-  val difference = Board.howManyCellsDifferent(start, start_evaluated)
+  val difference = Board.howManyCellsDifferent(stop, stop_evaluated)
   println(s"After transformation there are $difference cells different")
 
 
